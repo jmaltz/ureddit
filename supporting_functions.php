@@ -786,7 +786,7 @@ function md5crypt ($pw, $salt="", $magic="")
 
     $salt = substr ($salt, 0, 8);
     $ctx = $pw . $magic . $salt;
-    $final = hex2bin (md5 ($pw . $salt . $pw));
+    $final = hex2binServerSafe (md5 ($pw . $salt . $pw));
 
     for ($i=strlen ($pw); $i>0; $i-=16)
     {
@@ -807,7 +807,7 @@ function md5crypt ($pw, $salt="", $magic="")
         else $ctx .= $pw[0];
         $i = $i >> 1;
     }
-    $final = hex2bin (md5 ($ctx));
+    $final = hex2binServerSafe (md5 ($ctx));
 
     for ($i=0;$i<1000;$i++)
     {
@@ -830,7 +830,7 @@ function md5crypt ($pw, $salt="", $magic="")
         {
             $ctx1 .= $pw;
         }
-        $final = hex2bin (md5 ($ctx1));
+        $final = hex2binServerSafe (md5 ($ctx1));
     }
     $passwd = "";
     $passwd .= to64 (((ord ($final[0]) << 16) | (ord ($final[6]) << 8) | (ord ($final[12]))), 4);
@@ -842,19 +842,38 @@ function md5crypt ($pw, $salt="", $magic="")
     return "$magic$salt\$$passwd";
 }
 
-/*
-function hex2bin ($str)
+function hex2binServerSafe($str)
 {
-    $len = strlen ($str);
-    $nstr = "";
-    for ($i=0;$i<$len;$i+=2)
-    {
-        $num = sscanf (substr ($str,$i,2), "%x");
-        $nstr.=chr ($num[0]);
-    }
-    return $nstr;
+	if(function_exists('hex2bin'))
+	{
+		return hex2bin($str);
+	}
+	else
+	{
+		return hex2binOldPHP($str);
+	}
 }
-*/
+
+function hex2binOldPHP ($str)
+{
+    $intValOfString = intval($str, 16); //convert the string to an integer
+    $newString = "";
+    $logVal = log($intValOfString, 2);
+    $logVal = floor($logVal) + 1; //find out the maximum power in the string
+    
+    while($logVal != 0 && $intValOfString != 0)
+    {
+	    if($intValOfString/pow(2, $logVal) >= 1)
+	    {
+		    $newString = $newString . "1";
+		    $intValOfString -= pow(2, $logVal);
+	    }
+	    $logVal--;
+    }
+	    
+    return $newString;
+}
+
 
 function to64 ($v, $n)
 {
