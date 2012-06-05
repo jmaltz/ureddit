@@ -856,22 +856,15 @@ function hex2binServerSafe($str)
 
 function hex2binOldPHP ($str)
 {
-    $intValOfString = intval($str, 16); //convert the string to an integer
-    $newString = "";
-    $logVal = log($intValOfString, 2);
-    $logVal = floor($logVal) + 1; //find out the maximum power in the string
-    
-    while($logVal != 0 && $intValOfString != 0)
-    {
-	    if($intValOfString/pow(2, $logVal) >= 1)
-	    {
-		    $newString = $newString . "1";
-		    $intValOfString -= pow(2, $logVal);
-	    }
-	    $logVal--;
-    }
-	    
-    return $newString;
+
+	$len = strlen ($str);
+	$nstr = "";
+	for ($i=0;$i<$len;$i+=2)
+	{
+		$num = sscanf (substr ($str,$i,2), "%x");
+		$nstr.=chr ($num[0]);
+	}
+	return $nstr;
 }
 
 
